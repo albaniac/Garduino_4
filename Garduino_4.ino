@@ -2,9 +2,13 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 #include "RTClib.h"
+#include "DHT.h"
+#define DHTPIN 7
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
 RTC_DS1307 rtc;
 SoftwareSerial lcdSerial(10, 11);//rx,tx
-SoftwareSerial dhtSerial(8,9);
 
 
 //declare pins for sensors, actuators
@@ -29,8 +33,8 @@ void setup () {
   lcdSerial.begin(9600);
   lcdSerial.write(0xFE);
   lcdSerial.write(0x7c);
-  lcdSerial.write(128);
-  dhtSerial.begin(9600);
+  lcdSerial.write(140);
+  dht.begin();
   
 #ifdef AVR
   Wire.begin();
@@ -57,6 +61,8 @@ void setup () {
 }
 
 void loop () {
+  dhtData();
+  delay(300);
   lcdSerial.write(0xFE);
   lcdSerial.write(0x01);
   currentStates();
@@ -278,5 +284,26 @@ void timeCheck(){
   else{
   States[0]=LOW;
   compareStates();
+  }
+}
+
+void dhtData() {
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  Serial.print(t);
+  Serial.print(h);
+
+  // check if returns are valid, if they are NaN (not a number) then something went wrong!
+  if (isnan(t) || isnan(h)) {
+    Serial.println("Failed to read from DHT");
+  } else {
+    Serial.print("Humidity: "); 
+    Serial.print(h);
+    Serial.print(" %\t");
+    Serial.print("Temperature: "); 
+    Serial.print(t);
+    Serial.println(" *C");
   }
 }
