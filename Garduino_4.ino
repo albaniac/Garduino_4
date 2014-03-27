@@ -26,6 +26,13 @@ int lStates[3];
 float lowSetp=23.0;
 float highSetp=25.0;
 const int faultSetp=30;
+volatile float tState; //previous temperature state. Us
+volatile float hState; //previous humidity state.
+float hum;
+float tem;
+int dhtFaultCnt;
+const int faultLim=10; // Will allow 10 bad readings from the DHT22 before it goes into fault mode.
+
 
 
 void setup () {
@@ -35,6 +42,7 @@ void setup () {
   lcdSerial.write(0x7c);
   lcdSerial.write(140);
   dht.begin();
+  dhtData();
   
 #ifdef AVR
   Wire.begin();
@@ -99,6 +107,7 @@ void loop () {
  }
  
  void checkGarden(){
+   //dhtData();
   float currentTemp= dhtData();
   lcdSerial.write(0xFE);
   lcdSerial.write(137);
@@ -185,8 +194,20 @@ void currentStates(){
 void lowTemp(){
   //lStates[1]=States[1];
   //lStates[2]=States[2];
+  float h = dht.readHumidity();
+  //Serial.print("h=");
+  //Serial.print(h);
+  if(h>60){
   States[1]= HIGH;//turn heater state to high
+  States[2]=HIGH;
+  }
+  else if(h>40&&h<50){
+  States[1]=HIGH;
   States[2]=LOW;//turn fan state to low
+  }
+  else{
+  Serial.print("time to water");
+  }  
   compareStates();
 }
 
@@ -215,6 +236,7 @@ void compareStates(){
 
 void tempCheck(float i){
   if(i<lowSetp){
+
     lcdSerial.write(0xFE);
     lcdSerial.write(204);
     lcdSerial.print("LOW");
@@ -292,18 +314,42 @@ float dhtData() {
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
   float t = dht.readTemperature();
-
+  hum=h;
+  tem=t;  
 
   // check if returns are valid, if they are NaN (not a number) then something went wrong!
   if (isnan(t) || isnan(h)) {
-    Serial.println("Failed to read from DHT");
-  } else {
+    //h=hState;
+    //t=tState;
+    Serial.print("Humidity: "); 
+    Serial.print(hState);
+    Serial.print(" %\t");
+    Serial.print("Temperature: "); 
+    Serial.print(tState);
+    Serial.print(" *C");
+    dhtFaultCnt ++;
+    Serial.print("f:");
+    Serial.println(dhtFaultCnt);
+    if (dhtFaultCnt>faultLim){
+      fault();
+    }
+    
+  } 
+  
+    else {
     Serial.print("Humidity: "); 
     Serial.print(h);
     Serial.print(" %\t");
     Serial.print("Temperature: "); 
     Serial.print(t);
-    return t;
+    hum = h;
+    tem = t;
     Serial.println(" *C");
+    return t;
+    tState=tem;
+    hState=hum;
+    dhtFaultCnt=0;
   }
 }
+
+
