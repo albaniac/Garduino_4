@@ -61,8 +61,8 @@ void setup () {
 }
 
 void loop () {
-  dhtData();
-  delay(300);
+  //dhtData();
+  //pdelay(300);
   lcdSerial.write(0xFE);
   lcdSerial.write(0x01);
   currentStates();
@@ -99,9 +99,9 @@ void loop () {
  }
  
  void checkGarden(){
-  int currentTemp= avgTemp();
+  float currentTemp= dhtData();
   lcdSerial.write(0xFE);
-  lcdSerial.write(140);
+  lcdSerial.write(137);
   lcdSerial.print("T=");
   Serial.print("Temp=");
   lcdSerial.print(currentTemp);
@@ -287,13 +287,12 @@ void timeCheck(){
   }
 }
 
-void dhtData() {
+float dhtData() {
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();
   float t = dht.readTemperature();
-  Serial.print(t);
-  Serial.print(h);
+
 
   // check if returns are valid, if they are NaN (not a number) then something went wrong!
   if (isnan(t) || isnan(h)) {
@@ -304,6 +303,7 @@ void dhtData() {
     Serial.print(" %\t");
     Serial.print("Temperature: "); 
     Serial.print(t);
+    return t;
     Serial.println(" *C");
   }
 }
