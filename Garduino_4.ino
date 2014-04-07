@@ -126,8 +126,10 @@ void loop () {
   lcdSerial.print(States[0]);
   lcdSerial.print(States[1]);
   lcdSerial.print(States[2]); 
-  //Serial.write(0xFE);
-  //Serial.write(202);
+  lcdSerial.write(0xFE);
+  lcdSerial.write(197);
+  lcdSerial.print("H=");
+  lcdSerial.print(hum);
   tempCheck(currentTemp);
   
   
@@ -194,20 +196,22 @@ void currentStates(){
 void lowTemp(){
   //lStates[1]=States[1];
   //lStates[2]=States[2];
-  float h = dht.readHumidity();
+  States[1]=HIGH;
+  States[2]=LOW;
+  //float h = dht.readHumidity();
   //Serial.print("h=");
   //Serial.print(h);
-  if(h>60){
-  States[1]= HIGH;//turn heater state to high
-  States[2]=HIGH;
-  }
-  else if(h>40&&h<50){
-  States[1]=HIGH;
-  States[2]=LOW;//turn fan state to low
-  }
-  else{
-  Serial.print("time to water");
-  }  
+  //if(h>60){
+  //States[1]= HIGH;//turn heater state to high
+  //States[2]=HIGH;
+  //}
+  //else if(h>40&&h<50){
+  //States[1]=HIGH;
+  //States[2]=LOW;//turn fan state to low
+  //}
+  //else{
+  //Serial.print("time to water");
+  //}  
   compareStates();
 }
 
